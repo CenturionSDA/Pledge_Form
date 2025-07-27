@@ -313,6 +313,7 @@
             margin-bottom: 12px;
             padding-bottom: 12px;
             border-bottom: 1px solid var(--border);
+            font-size: 1.05rem;
         }
         
         .summary-item:last-child {
@@ -930,47 +931,46 @@
                 submitBtn.disabled = true;
                 submitBtn.innerHTML = '<div class="spinner"></div> Processing...';
                 
-                // Prepare data for submission
-                const formData = {
-                    name,
-                    email,
-                    amount,
-                    frequency,
-                    startDate,
-                    method,
-                    notes,
-                    phone,
-                    timestamp: new Date().toISOString()
-                };
-                
                 try {
-                    // Submit to Google Apps Script
-                    const response = await fetch('https://script.google.com/macros/s/AKfycbwSvXqqXr2-VgHAYaCjeFaGaSPDBrlnWH0VQaPVBx8-OP_Akqbm6kP7r4o6aOEHW6CN/exec', {
+                    // Prepare data to send
+                    const formData = {
+                        fullName: name,
+                        email: email,
+                        phone: phone,
+                        pledgeAmount: amount,
+                        frequency: frequency,
+                        startDate: startDate,
+                        preferredMethod: method,
+                        notes: notes
+                    };
+                    
+                    // Send data to Google Apps Script
+                    const response = await fetch('https://script.google.com/macros/s/AKfycbwUOEM2ohXr0fJjQlIq4dpqFfukH2sl3nJlZpBPHpCQPnDhahj3JTYds8E2tDqOxDt9-A/exec', {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/json',
+                            'Content-Type': 'application/json'
                         },
                         body: JSON.stringify(formData)
                     });
                     
-                    const result = await response.json();
-                    
-                    if (result.result === 'success') {
-                        // Show success message
-                        document.getElementById('successMessage').style.display = 'block';
-                        document.getElementById('successMessage').scrollIntoView({ behavior: 'smooth' });
-                        
-                        // Reset form
-                        e.target.reset();
-                        
-                        // Reset date to today
-                        document.getElementById('startDate').value = formattedDate;
-                        
-                        // Show success status
-                        showStatus('Pledge submitted successfully! Confirmation email sent.', 'success');
-                    } else {
-                        showStatus('There was an error submitting your pledge. Please try again.', 'error');
+                    // Check if response is successful
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
                     }
+                    
+                    // Show success message
+                    document.getElementById('successMessage').style.display = 'block';
+                    document.getElementById('successMessage').scrollIntoView({ behavior: 'smooth' });
+                    
+                    // Reset form
+                    e.target.reset();
+                    
+                    // Reset date to today
+                    document.getElementById('startDate').value = formattedDate;
+                    
+                    // Show success status
+                    showStatus('Pledge submitted successfully! Confirmation email sent.', 'success');
+                    
                 } catch (error) {
                     console.error('Error:', error);
                     showStatus('There was an error submitting your pledge. Please try again.', 'error');
